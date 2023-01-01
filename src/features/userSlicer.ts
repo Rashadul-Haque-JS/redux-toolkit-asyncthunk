@@ -27,11 +27,31 @@ const initialState: IUsers = {
 export const userSlicer = createSlice({
   name: "user",
   initialState,
+
+  // This main reducer is for all actions outside API
   reducers: {
+    addUser: (state, action: PayloadAction<TUser>) => {
+      state.users = [...state.users, action.payload];
+    },
+    editUser: (state, action: PayloadAction<TUser>) => {
+      state.users.find((user) => {
+        if (user.id === action.payload.id) {
+          user = action.payload;
+          state.users = state.users.filter(
+            (user) => user.id !== action.payload.id
+          );
+          state.users = [...state.users, action.payload];
+          state.users.sort((a, b) => {
+            return -(b.id - a.id || a.name.localeCompare(b.name));
+          });
+        }
+      });
+    },
     removeUser: (state, action: PayloadAction<number>) => {
       state.users = state.users.filter((user) => user.id !== action.payload);
     },
   },
+  // This extra reducer is for API ations
   extraReducers: (builder) => {
     builder.addCase(fetchUsers.pending, (state, action) => {
       state.status = action.meta.requestStatus;
@@ -48,5 +68,5 @@ export const userSlicer = createSlice({
   },
 });
 
-export const { removeUser } = userSlicer.actions;
+export const { addUser, editUser, removeUser } = userSlicer.actions;
 export default userSlicer.reducer;
